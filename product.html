@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm và Người Dùng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 90vh;
+        }
+
+        aside {
+            flex: 1 1 200px;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+
+        aside ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        aside ul li a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        aside ul li a:hover {
+            background-color: #ddd;
+        }
+
+        main {
+            flex: 3 1 600px;
+            padding: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        input[type="text"], input[type="description"], input[type="submit"], .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin: 5px;
+            width: auto;
+        }
+
+        .btn-edit {
+            background-color: #FFC107;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            aside, main {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trang Quản Trị</h1>
+    </header>
+    <div class="container">
+        <aside>
+            <ul>
+                <li><a href="index.html">Quản lý người dùng</a></li>
+                <li><a href="product.html">Quản lý sản phẩm</a></li>
+                <!-- <li><a href="category.html">Quản lý danh mục</a></li> -->
+                <li><a href="order.html">Quản lý đơn hàng</a></li>                
+            </ul>
+        </aside>
+        <main>
+            <!--<section id="products">
+                <h2>Quản lý sản phẩm</h2>
+                 Form and Table for Products 
+            </section>-->
+            <section id="products">
+                <h2>Quản lý sản phẩm</h2>
+                <form id="addProductForm">
+                    <input type="text" id="newProductName" name="name" placeholder="Tên sản phẩm" required>
+                    <input type="text" id="newProductDescription" name="description" placeholder="Mô tả sản phẩm" required>
+                    <input type="file" id="newProductImage" name="image" placeholder="Hình ảnh sản phẩm" required>
+                    <input type="submit" value="Thêm sản phẩm">
+                </form>
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Mô tả</th>
+                            <th>Hình Ảnh</th>
+                            <th>Giá</th>
+                            <th>Ngày Tạo</th>
+                            <th>Ngày Cập Nhật</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- products data will be loaded here -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <form id="editForm">
+                <label for="name">Tên:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="description">Mô tả:</label>
+                <input type="description" id="description" name="description" required>
+                <label for="image">Hình ảnh:</label>
+                <input type="image" id="image" name="image" required>
+                
+                <input type="hidden" id="productId">
+                <button type="submit">Cập nhật</button>
+                <button type="button" onclick="closeModal()">Đóng</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        fetch('http://localhost:3001/api/product')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector("#productsTable tbody");
+            data.forEach(product => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.description}</td>
+                    <td><img src="${product.image}" alt="Girl in a jacket" width="50" height="60"></td>
+                    <td>${product.price}</td>
+                    <td>${product.createdAt}</td>
+                    <td>${product.updatedAt}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="showEditForm(${product.id}, '${product.name}', '${product.description}', '${product.image}')">Chỉnh sửa</button>
+                        <button class="btn btn-delete" onclick="deleteProduct(${product.id})">Xóa</button>
+                    </td>
+                `;
+            });
+        })
+        .catch(error => console.error('Error loading the data: ', error));
+
+        document.getElementById('addProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('newProductName').value;
+            const description = document.getElementById('newProductDescription').value;
+            const image = document.getElementById('newProductImage').value;
+            fetch('http://localhost:3001/api/product/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, description, image })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Product added successfully!');
+                window.location.reload(); // Reload the page to update the table
+            })
+            .catch(error => {
+                alert('Error adding product');
+                console.error('Error:', error);
+            });
+        });
+
+        function deleteProduct(productId) {
+            // URL của endpoint để gọi API xóa sản phẩm
+            const url = `http://localhost:3001/api/product/delete`;
+
+            // Tạo dữ liệu JSON để gửi với yêu cầu
+            const data = { id: productId };
+
+            // Gửi yêu cầu POST đến server
+            fetch(url, {
+                method: 'POST',   // Sử dụng phương thức POST
+                headers: {
+                    'Content-Type': 'application/json'  // Thiết lập header để chỉ rõ nội dung gửi đi là JSON
+                },
+                body: JSON.stringify(data)  // Chuyển đối tượng JavaScript thành chuỗi JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Nếu server trả về mã lỗi, ném ra lỗi và hiển thị thông báo
+                    throw new Error('Failed to delete product with response: ' + response.statusText);
+                }
+                return response.json();  // Giải mã phản hồi từ server nếu thành công
+            })
+            .then(data => {
+                alert("Product deleted successfully");  // Thông báo cho người dùng
+                window.location.reload();  // Tải lại trang để cập nhật danh sách sản phẩm
+            })
+            .catch(error => {
+                alert('Error deleting the product: ' + error);  // Hiển thị thông báo lỗi
+            });
+        }
+
+        function showEditForm(id, name, description, image) {
+            document.getElementById('productId').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('description').value = description;
+            document.getElementById('image').value = image;
+            document.getElementById('editProductModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editProductModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const image = document.getElementById('image').value;
+            
+            // API call to update user data
+            fetch('http://localhost:3001/api/product/edit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: parseInt(id), name: name, description: description })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Product updated successfully!');
+                closeModal();
+                window.location.reload(); // Reload the page to update the table with new data
+            })
+            .catch(error => {
+                alert('Error updating Product');
+                console.error('Error:', error);
+            });
+    });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <!-- Sidebar -->
+    <div class="flex">
+        <aside class="w-64 bg-gray-900 text-white h-screen p-5">
+            <div class="mb-10">
+                <h1 class="text-lg font-bold">Dashboard</h1>
+            </div>
+            <ul>
+                <li class="py-2 hover:bg-gray-700 cursor-pointer">Dashboard</li>
+                <li class="py-2 hover:bg-gray-700 cursor-pointer">Commerce</li>
+                <li class="py-2 hover:bg-gray-700 cursor-pointer">Analytics</li>
+            </ul>
+        </aside>
+        
+        <div class="flex-1">
+            <!-- Main content -->
+            <div class="bg-white shadow p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Add new post</h2>
+                <div class="flex space-x-2">
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">+ Add Content</button>
+                    <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Settings</button>
+                </div>
+                <input type="text" placeholder="Search content..." class="border p-2 rounded">
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

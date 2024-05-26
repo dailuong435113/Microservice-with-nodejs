@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: ecommerce_fullstack
+      MYSQL_USER: user
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-net
+
+  user_manage:
+    build: ./user_manage
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+
+  product_manage:
+    build: ./product_manage
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+
+  order_manage:
+    build: ./order_manage
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-net
+  
+  # frontend:
+  #   build:
+  #     context: ./Frontend
+  #   ports:
+  #     - "3010:3010"
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+
+
+# version: '3.8'
+
+# services:
+#   db:
+#     image: mysql:8.0
+#     command: --default-authentication-plugin=caching_sha2_password
+#     environment:
+#       MYSQL_ROOT_PASSWORD: secret
+#       MYSQL_DATABASE: ecommerce_fullstack
+#       MYSQL_USER: user
+#       MYSQL_PASSWORD: secret
+#     ports:
+#       - "3306:3306"
+#     volumes:
+#       - mysql-data:/var/lib/mysql
+#     networks:
+#       - app-net
+#     healthcheck:
+#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+
+#   adminer:
+#     image: adminer
+#     restart: always
+#     ports:
+#       - "8080:8080"
+#     depends_on:
+#       - db
+#     networks:
+#       - app-net
+
+#   user_manage:
+#     build: ./user_manage
+#     ports:
+#       - "3000:3000"
+#     environment:
+#       - NODE_ENV=development
+#       - DATABASE_HOST=db
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks:
+#       - app-net
+
+#   product_manage:
+#     build: ./product_manage
+#     ports:
+#       - "3001:3001"
+#     environment:
+#       - NODE_ENV=development
+#       - DATABASE_HOST=db
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks:
+#       - app-net
+
+#   order_manage:
+#     build: ./order_manage
+#     ports:
+#       - "3002:3002"
+#     environment:
+#       - NODE_ENV=development
+#       - DATABASE_HOST=db
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks:
+#       - app-net
+
+#   frontend:
+#     build:
+#       context: ./Frontend
+#     ports:
+#       - "3010:3010"
+
+# networks:
+#   app-net:
+#     driver: bridge
+
+# volumes:
+#   mysql-data:

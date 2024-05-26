@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm và Người Dùng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 90vh;
+        }
+
+        aside {
+            flex: 1 1 200px;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+
+        aside ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        aside ul li a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        aside ul li a:hover {
+            background-color: #ddd;
+        }
+
+        main {
+            flex: 3 1 600px;
+            padding: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        input[type="text"], input[type="email"], input[type="submit"], .btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin: 5px;
+            width: auto;
+        }
+
+        .btn-edit {
+            background-color: #FFC107;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #DC3545;
+            color: white;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            aside, main {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trang Quản Trị</h1>
+    </header>
+    <div class="container">
+        <aside>
+            <ul>
+                <li><a href="index.html">Quản lý người dùng</a></li>
+                <li><a href="product.html">Quản lý sản phẩm</a></li>
+                <!-- <li><a href="category.html">Quản lý danh mục</a></li> -->
+                <li><a href="order.html">Quản lý đơn hàng</a></li>                
+            </ul>
+        </aside>
+        <main>
+            <!--<section id="products">
+                <h2>Quản lý sản phẩm</h2>
+                 Form and Table for Products 
+            </section>-->
+            <section id="users">
+                <h2>Quản lý người dùng</h2>
+                <form id="addUserForm">
+                    <input type="text" id="newUserName" name="name" placeholder="Tên người dùng" required>
+                    <input type="email" id="newUserEmail" name="email" placeholder="Email người dùng" required>
+                    <input type="text" id="address" name="address" placeholder="địa chỉ" required>
+                    <input type="text" id="newUserPhone" name="phone" placeholder="Số điện thoại" required>
+                    <input type="submit" value="Thêm người dùng">
+                </form>
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Email</th>
+                            <th>Địa chỉ</th>
+                            <th>Ngày Tạo</th>
+                            <th>Ngày Cập Nhật</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Users data will be loaded here -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <form id="editForm">
+                <label for="name">Tên:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="address">Địa chỉ:</label>
+                <input type="text" id="address" name="address" required>
+                <label for="sex">Giới tính:</label>
+                <input type="text" id="sex" name="sex" required>
+                <label for="phone">Số điện thoại:</label>
+                <input type="text" id="phone" name="phone" required>
+                <input type="hidden" id="userId">
+                <button type="submit">Cập nhật</button>
+                <button type="button" onclick="closeModal()">Đóng</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        fetch('http://localhost:3000/api/user')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.querySelector("#usersTable tbody");
+            data.forEach(user => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>  
+                    <td>${user.address}</td>
+                    <td>${user.createdAt}</td>
+                    <td>${user.updatedAt}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="showEditForm(${user.id}, '${user.username}', '${user.email}', '${user.address}', '${user.sex}', '${user.phone}')">Chỉnh sửa</button>
+                        <button class="btn btn-delete" onclick="deleteUser(${user.id})">Xóa</button>
+                    </td>
+                `;
+            });
+        })
+        .catch(error => console.error('Error loading the data: ', error));
+
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('newUserName').value;
+            const email = document.getElementById('newUserEmail').value;
+            const password = '123';
+            const address =  document.getElementById('address').value;
+            const sex = 'male';
+            const phone = document.getElementById('newUserPhone').value;
+            fetch('http://localhost:3000/api/user/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({email, username, password, address, sex, phone })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('User added successfully!');
+                window.location.reload(); // Reload the page to update the table
+            })
+            .catch(error => {
+                alert('Error adding user');
+                console.error('Error:', error);
+            });
+        });
+
+        function deleteUser(userId) {
+            // Hiển thị thông báo trên console (Có thể xóa dòng này nếu không cần)
+            console.log("Delete user", userId);
+
+            // URL của endpoint để gọi API xóa người dùng
+            const url = `http://localhost:3000/api/user/delete`;
+
+            // Tạo dữ liệu JSON để gửi với yêu cầu
+            const data = { id: userId };
+
+            // Gửi yêu cầu POST đến server
+            fetch(url, {
+                method: 'POST',  // Sử dụng phương thức POST
+                headers: {
+                    'Content-Type': 'application/json'  // Thiết lập header để chỉ rõ nội dung gửi đi là JSON
+                },
+                body: JSON.stringify(data)  // Chuyển đối tượng JavaScript thành chuỗi JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Nếu server trả về mã lỗi, ném ra lỗi và hiển thị thông báo lỗi
+                    throw new Error('Failed to delete user with response: ' + response.statusText);
+                }
+                return response.json();  // Giải mã phản hồi từ server nếu thành công
+            })
+            .then(data => {
+                alert("User deleted");  // Thông báo cho người dùng
+                window.location.reload();  // Tải lại trang để cập nhật danh sách người dùng
+            })
+            .catch(error => {
+                alert('Error deleting the user: ' + error);  // Hiển thị thông báo lỗi
+            });
+        }
+
+
+        function showEditForm(id, name, email, address, sex, phone) {
+            document.getElementById('userId').value = id;
+            document.getElementById('name').value = name;
+            document.getElementById('email').value = email;
+            document.getElementById('address').value = address;
+            document.getElementById('sex').value = sex;
+            document.getElementById('phone').value = phone;
+            document.getElementById('editUserModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            const sex = document.getElementById('sex').value;
+            const phone = document.getElementById('phone').value;
+            // API call to update user data
+            fetch('http://localhost:3000/api/user/edit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: parseInt(id), username: name, email: email, address: address, sex: sex, phone: phone })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('User updated successfully!');
+                closeModal();
+                window.location.reload(); // Reload the page to update the table with new data
+            })
+            .catch(error => {
+                alert('Error updating user');
+                console.error('Error:', error);
+            });
+    });
+
+    </script>
+</body>
+</html>

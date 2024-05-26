@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm và Người Dùng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+        header {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 90vh;
+        }
+        aside {
+            flex: 1 1 200px;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        aside ul {
+            list-style: none;
+            padding: 0;
+        }
+        aside ul li a {
+            text-decoration: none;
+            color: #333;
+            display: block;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        aside ul li a:hover {
+            background-color: #ddd;
+        }
+        main {
+            flex: 3 1 600px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            margin: 5px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #productDetails {
+            margin-top: 20px;
+        }
+        #productDetails th, #productDetails td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Trang Quản Trị</h1>
+    </header>
+    <div class="container">
+        <aside>
+            <ul>
+                <li><a href="index.html">Quản lý người dùng</a></li>
+                <li><a href="product.html">Quản lý sản phẩm</a></li>
+                <!-- <li><a href="category.html">Quản lý danh mục</a></li> -->
+                <li><a href="order.html">Quản lý đơn hàng</a></li>
+            </ul>
+        </aside>
+        <main>
+            <section id="carts">
+                <h2>Danh sách đơn hàng</h2>
+                <table id="cartsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Ngày Tạo</th>
+                            <th>Ngày Cập Nhật</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- carts data will be loaded here -->
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <div id="editcartModal" class="modal">
+        <div class="modal-content">
+            <h2>Chi tiết Đơn Hàng</h2>
+            <form id="editForm">
+                <label for="name">Tên khách hàng:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="total">Tổng tiền:</label>
+                <input type="text" id="total" name="total" readonly>
+                <table id="productDetails">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                            <th>Tổng tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Product details will be loaded here -->
+                    </tbody>
+                </table>
+                <button type="button" onclick="closeModal()" class="btn-delete">Đóng</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function fetchCarts() {
+            fetch('http://localhost:3002/api/cart/list')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector("#cartsTable tbody");
+                data.forEach(cart => {
+                    const row = tableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${cart.id_cart}</td>
+                        <td>${cart.username}</td>
+                        <td>${cart.total}</td>
+                        <td>${cart.createdAt}</td>
+                        <td>${cart.updatedAt}</td>
+                        <td>
+                            <button class="btn btn-edit" onclick="showEditForm(${cart.id_cart}, '${cart.username}', '${cart.total}')">Chỉnh sửa</button>
+                            <button class="btn btn-delete" onclick="deletecart(${cart.id_cart})">Xóa</button>
+                        </td>
+                    `;
+                });
+            })
+            .catch(error => console.error('Error loading the data: ', error));
+        }
+
+        function showEditForm(id_cart, username, total) {
+            fetch(`http://localhost:3002/api/cart-details/${id_cart}`)
+            .then(response => response.json())
+            .then(data => {
+                const modal = document.getElementById('editcartModal');
+                document.getElementById('name').value = username;
+                document.getElementById('total').value = total;
+                const productTableBody = document.querySelector("#productDetails tbody");
+                productTableBody.innerHTML = '';  // Clear previous entries
+                data.forEach(product => {
+                    const row = productTableBody.insertRow();
+                    row.innerHTML = `
+                        <td>${product.productname}</td>
+                        <td>${product.price}</td>
+                        <td>${product.quantity}</td>
+                        <td>${product.price * product.quantity}</td>
+                    `;
+                });
+                modal.style.display = 'flex';
+            })
+            .catch(error => console.error('Error fetching cart details: ', error));
+        }
+
+        function closeModal() {
+            document.getElementById('editcartModal').style.display = 'none';
+        }
+
+        function deletecart(cartId) {
+            console.log("Delete cart", cartId);
+        }
+
+        window.onload = fetchCarts;
+    </script>
+</body>
+</html>
